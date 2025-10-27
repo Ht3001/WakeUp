@@ -1,14 +1,12 @@
-# Ir a la carpeta descomprimida
-cd ~/Descargas/WakeUp   # o donde esté la carpeta WakeUp
+# Valor Humano App
 
-# Inicializa git
-git init
-git add .
-git commit -m "Primer commit - versión WakeUp bilingüe"
+## Descripción
+**Valor Humano** es una aplicación de desarrollo personal y espiritualidad que calcula el "Valor Personal" de cada usuario a través de la fórmula:  
 
-# Conecta con el repo en GitHub (reemplaza TU_USUARIO)
-git remote add origin https://github.com/TU_USUARIO/WakeUp.git
+**Valor Personal = (Conocimiento + Habilidad) x Actitud**  
 
-# Sube los archivos
-git branch -M main
-git push -u origin main
+Los usuarios responden preguntas filosóficas, éticas y de desarrollo personal que permiten evaluar sus principios, valores y habilidades, generando un índice personal y fomentando la evolución del alma a través del juego.
+
+---
+
+## Estructura del proyecto
