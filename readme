@@ -1,0 +1,26 @@
+# WakeUp App - Setup Notes
+
+To enable role-based access control:
+
+1. In Supabase, create a table called `profiles`:
+   - `id` (UUID, Primary Key, references `auth.users`)
+   - `role` (Text): e.g., 'admin', 'user'
+
+2. Use Supabase triggers to insert a default role on sign-up (optional):
+```sql
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.profiles (id, role)
+  VALUES (NEW.id, 'user');
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER on_auth_user_created
+AFTER INSERT ON auth.users
+FOR EACH ROW
+EXECUTE FUNCTION public.handle_new_user();
+```
+
+3. Manually set `role = 'admin'` for admin users in the `profiles` table.
