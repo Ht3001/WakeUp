@@ -1,0 +1,11 @@
+$ npm install --save rollbar
+// include and initialize the rollbar library with your access token
+var Rollbar = require('rollbar');
+var rollbar = new Rollbar({
+  accessToken: '33656676cd3546ec9cb392caf4b1df8a',
+  captureUncaught: true,
+  captureUnhandledRejections: true,
+});
+
+// record a generic message and send it to Rollbar
+rollbar.log('Hello world!');
