@@ -1,0 +1,90 @@
+# Add logic to auto-unlock achievements when users answer enough questions
+
+# Update Questions.js to include logic for unlocking achievements
+updated_questions_component = """import { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabaseClient';
+
+export default function Questions() {
+  const [questions, setQuestions] = useState([]);
+  const [completed, setCompleted] = useState([]);
+  const [userId, setUserId] = useState(null);
+  const [unlocked, setUnlocked] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      setUserId(user.id);
+
+      const { data: qData } = await supabase.from('questions').select('*');
+      setQuestions(qData || []);
+
+      const { data: cData } = await supabase
+        .from('user_questions')
+        .select('question_id')
+        .eq('user_id', user.id);
+
+      setCompleted(cData?.map((item) => item.question_id) || []);
+
+      const { data: uAch } = await supabase
+        .from('user_achievements')
+        .select('achievement_id')
+        .eq('user_id', user.id);
+
+      setUnlocked(uAch?.map(a => a.achievement_id) || []);
+    };
+
+    fetchData();
+  }, []);
+
+  const handleComplete = async (qid) => {
+    await supabase.from('user_questions').insert([{ user_id: userId, question_id: qid }]);
+    const updated = [...completed, qid];
+    setCompleted(updated);
+    await checkAchievements(updated.length);
+  };
+
+  const checkAchievements = async (answeredCount) => {
+    const { data: allAchievements } = await supabase.from('achievements').select('*');
+
+    for (const ach of allAchievements) {
+      if (
+        answeredCount >= ach.threshold &&
+        !unlocked.includes(ach.id)
+      ) {
+        await supabase.from('user_achievements').insert([
+          { user_id: userId, achievement_id: ach.id }
+        ]);
+        setUnlocked((prev) => [...prev, ach.id]);
+        alert(`🎉 Logro desbloqueado: ${ach.title}`);
+      }
+    }
+  };
+
+  return (
+    <div>
+      <h2>Preguntas de Hoy</h2>
+      <ul>
+        {questions.map((q) => (
+          <li key={q.id}>
+            <p>{q.text}</p>
+            <button onClick={() => handleComplete(q.id)} disabled={completed.includes(q.id)}>
+              {completed.includes(q.id) ? 'Completado' : 'Responder'}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+"""
+
+# Overwrite Questions.js with the updated logic
+(components_path / "Questions.js").write_text(updated_questions_component)
+
+# Recreate the zip file with new logic
+with zipfile.ZipFile(zip_path, "w") as zipf:
+    for path in base_path.rglob("*"):
+        zipf.write(path, path.relative_to(base_path.parent))
+
+zip_path.name
